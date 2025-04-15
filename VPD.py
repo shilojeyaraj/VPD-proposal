@@ -8,7 +8,7 @@ from datetime import datetime
 API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = API_KEY
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="frontend")
 
 def generate_responses(prompt_type, input_brief, run_id, num_generations=3):
     """Generates multiple responses using OpenAI GPT-4-turbo and saves them in a structured directory."""
@@ -29,13 +29,23 @@ def generate_responses(prompt_type, input_brief, run_id, num_generations=3):
     responses = []
     for i in range(num_generations):
         response = openai.ChatCompletion.create(
-            model="gpt-4-turbo",
+            model="gpt-4-turbo",  # Use gpt-4-turbo model
             messages=[
-                {"role": "system", "content": f"You are an AI designed to generate {prompt_type} responses."},
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an AI designed to generate a value proposition design proposal structure template "
+                        "where you will define a reusable proposal structure template with sections: "
+                        "Executive Summary/Overview, Client/Proposed Context & Market Opportunity, "
+                        "Proposed Value Proposition Design Approach, Key Deliverables, Timeline, Price & Engagement Model."
+                    )
+                },
                 {"role": "user", "content": input_brief}
-            ]
+            ],
+            max_tokens=1500,  # Adjust token limit as needed
+            temperature=0.7
         )
-        response_text = response["choices"][0]["message"]["content"]
+        response_text = response["choices"][0]["message"]["content"].strip()  # Extract the response text
         responses.append(response_text)
 
         response_filename = os.path.join(base_dir, f"response_{i+1}.txt")

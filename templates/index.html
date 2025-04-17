@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Responses</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Generate Responses</h1>
+    <form action="/generate" method="post" id="convoForm">
+        <label for="prompt_type">Prompt Type:</label>
+        <input id="message" name="prompt_type" required><br><br>
+
+        <button type="submit">Generate</button>
+    </form>
+
+    <div id="result" class="mt-3"></div>
+
+
+    <script>
+        document.getElementById('convoForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const userInput = document.getElementById('message').value;
+
+            fetch('/reply', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ input: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').textContent = data.response;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+        console.log("successfuly received gpt proposal on html")
+    </script>
+
+</body>
+</html>

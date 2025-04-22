@@ -76,7 +76,7 @@ def generate_feedback(scores):
     feedback += "Please revise the proposal based on this feedback."
     return feedback
 # Add initial user message
-user_input = "Draft a business proposal for Manulife Financial Corporation to explore a new product in climate adaptation and resilience."
+user_input = "Draft a business proposal for Manulife Financial Corporation to explore a new product in climate adaptation and resilience. Make each section detailed"
 add_message("user", user_input)
 
 # Generate and print the proposal

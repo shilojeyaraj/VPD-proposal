@@ -13,11 +13,12 @@ from dotenv import load_dotenv
 # Load environment variables from a .env file
 load_dotenv()
 
-KEY = os.getenv("OPENAI_VPD_API_KEY")
-openai.api_key = KEY
+openai.api_key = os.getenv("OPENAI_SECRET_KEY")
+if not openai.api_key:
+    raise ValueError("OPENAI_SECRET_KEY is not set. Please check your .env file.")
 
 #initialize client
-client = openai.OpenAI(api_key=KEY)
+
 app = Flask(__name__)
 
 # Initialize conversation history

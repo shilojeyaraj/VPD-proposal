@@ -30,16 +30,25 @@ def generate_response():
     add_message("assistant", reply)
     return reply
 
-# Define the success criteria and scoring logic
+# Add initial user message
+user_input = "Client is Manulife Financial Corporation – Climate Adaptation & Resilience Validate the opportunity for Manulife Financial Corporation to develop a new product in the ‘Climate Adaptation & Resilience’ domain. Test interest in new forms of risk financing that help individuals or businesses invest in climate adaptation infrastructure. Explore partnerships with governments or NGOs to make offerings viable."
+add_message("user", user_input)
+
 criteria = {
-    "Structure Adherence": lambda proposal: 5 if "Executive Summary" in proposal and "Key Deliverables" in proposal else 3,
-    "Clarity and Brand Tone": lambda proposal: 5 if len(proposal.split()) > 100 else 3,
-    "Completeness": lambda proposal: 5 if all(
+    "Structure Adherence": lambda proposal: 5 if all(
         section in proposal for section in [
             "Executive Summary", "Client/Proposed Context", "Market Opportunity",
             "Proposed Value Proposition Design Approach", "Key Deliverables", "Timeline", "Price & Engagement Model"
         ]
-    ) else 2,
+    ) else 3 if any(
+        section in proposal for section in [
+            "Executive Summary", "Key Deliverables", "Timeline"
+        ]
+    ) else 1,
+    "Clarity and Brand Tone": lambda proposal: 5 if len(proposal.split()) > 150 else 4 if len(proposal.split()) > 100 else 3 if len(proposal.split()) > 50 else 2,
+    "Market Fit Validation": lambda proposal: 5 if "need" in proposal.lower() else 3,
+    "Timeline/Budget": lambda proposal: 5 if "timeline" in proposal.lower() and "budget" in proposal.lower() else 3 if "timeline" in proposal.lower() or "budget" in proposal.lower() else 1,
+    "Completeness": lambda proposal: 5 if len(proposal.split()) > 200 else 4 if len(proposal.split()) > 150 else 3 if len(proposal.split()) > 100 else 2,
     "Consistency/Stability": lambda proposal: 5  # Assume consistent language for simplicity
 }
 
@@ -48,9 +57,26 @@ def grade_proposal(proposal):
     scores = {key: func(proposal) for key, func in criteria.items()}
     total_score = sum(scores.values()) / len(criteria)  # Average score
     return total_score, scores
-
+def generate_feedback(scores):
+    """Generate feedback based on the scoring results."""
+    feedback = "The proposal received the following scores:\n"
+    for criterion, score in scores.items():
+        feedback += f"{criterion}: {score}/5\n"
+        if score < 5:
+            if criterion == "Structure Adherence":
+                feedback += "- Ensure all required sections are included, such as 'Timeline' or 'Price & Engagement Model'.\n"
+            elif criterion == "Clarity and Brand Tone":
+                feedback += "- Improve clarity by expanding sections and ensuring alignment with the brand tone.\n"
+            elif criterion == "Market Fit Validation":
+                feedback += "- Clearly address the client's needs and how the proposal meets them.\n"
+            elif criterion == "Timeline/Budget":
+                feedback += "- Include specific details about the timeline and budget.\n"
+            elif criterion == "Completeness":
+                feedback += "- Add more content to ensure all required elements are thoroughly addressed.\n"
+    feedback += "Please revise the proposal based on this feedback."
+    return feedback
 # Add initial user message
-user_input = "Client is a logistics firm seeking a cloud-native inventory management solution."
+user_input = "Draft a business proposal for Manulife Financial Corporation to explore a new product in climate adaptation and resilience."
 add_message("user", user_input)
 
 # Generate and print the proposal
@@ -66,11 +92,7 @@ for criterion, score in scores.items():
     print(f"{criterion}: {score}/5")
 
 # Generate feedback message for improvement
-feedback = (
-    f"The proposal received the following scores:\n"
-    + "\n".join([f"{criterion}: {score}/5" for criterion, score in scores.items()])
-    + "\nPlease revise the proposal to improve clarity, completeness, and adherence to the criteria."
-)
+feedback = generate_feedback(scores)
 print("\n--- Feedback ---\n")
 print(feedback)
 

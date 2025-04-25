@@ -4,31 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generate Responses</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <h1>Generate Responses</h1>
     <form action="/generate" method="post" id="convoForm">
         <label for="prompt_type">Prompt Type:</label>
-        <input id="message" name="prompt_type" required><br><br>
+        <input id="message" name="prompt_type" style="width: 300px;" required><br><br>
+
+        <h2>Grading Rubric</h2>
+
+        <label for="clarity">Clarity:</label>
+        <input type="range" id="clarity" name="clarity" min="1" max="5" value="3">
+        <span id="clarityValue">3</span><br><br>
+
+        <label for="completeness">completeness:</label>
+        <input type="range" id="completeness" name="completeness" min="1" max="5" value="3">
+        <span id="completenessValue">3    </span><br><br>
+
+        <label for="purpose">Purpose:</label>
+        <input type="range" id="purpose" name="purpose" min="1" max="5" value="3">
+        <span id="purposeValue">3</span><br><br>
+
+        <label for="feasibility">Feasibility:</label>
+        <input type="range" id="feasibility" name="feasibility" min="1" max="5" value="3">
+        <span id="feasibilityValue">3</span><br><br>
+
+        <label for="consistency">consistency:</label>
+        <input type="range" id="consistency" name="consistency" min="1" max="5" value="3">
+        <span id="consistencyValue">3</span><br><br>
+
+        <h2>Test Case Proposal (Optional)</h2>
+
+        <label for="test_case">Test Case Proposal:</label>
+        <textarea id="test_case" name="test_case" rows="4" cols="50" placeholder="Enter your test case proposal here..."></textarea><br><br>
 
         <button type="submit">Generate</button>
     </form>
 
-    <div id="result" class="mt-3"></div>
-
+    <div class="mt-3">
+        <p id="result" style="white-space: pre-wrap; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">Proposal Title: "Climate and Environmental Risk Product Development for Great-West Lifeco" Executive Summary: The global climate change is resulting in an increased frequency of catastrophic weather events. This shift presents an untapped opportunity for Great-West Lifeco to prioritize the creation of a new insurance product in the Climate and Environmental Risk domain. This proposal will address this opportunity by assessing the demand for new coverage models in Canada, understanding regional risk appetite, evaluating reinsurance options, and gauging consumer willingness to pay. Objectives: 1. Assess the Demand - Identify, analyze, and predict the need and demand for new coverage models concerning weather-related catastrophic events in different regions of Canada. 2. Evaluate Risk Appetite - Conduct a regional risk appetite assessment to understand the level of risk insurers are willing to retain versus reinsure. 3. Reinsurance Options - Study the current market landscape of reinsurance options. This assessment will help determine the most suitable partnerships. 4. Consumer Willingness to Pay - Carry out market research to gauge how much consumers are willing to pay for this new coverage model. Methodology: 1. Comprehensive Market Research - We will conduct a detailed market study to understand the demand for such coverage models as well as consumers' willingness to pay. 2. Stakeholder Consultation - We will run focus groups with potential buyers, workshops with financial advisors, and interviews with industry experts to gauge risk appetite and potential reinsurance options. 3. Data Analysis - We will analyze historical weather data, incident reports, and environmental forecasts to assess the level of risk involved for each region of Canada. 4. Collaborative Approach - We'll work closely with your team to understand your specific business needs and constraints, helping to design a comprehensive solution that fits within your existing portfolio and targets sustainable growth. Outcomes: Our proposed solution is aimed to equip Great-West Lifeco with an in-depth understanding of this new market opportunity in the climate and environmental risk sphere. By the end of this project, we will: 1. Identify potential insurance coverage models suitable for your product portfolio. 2. Offer valuable insights into consumer price thresholds for the proposed product. 3. Design a risk assessment model that reflects the varying climate risks across Canadian regions. 4. Provide recommendations for reinsurance strategies. We believe this new product development can open lucrative segments for Great-West Lifeco, deepen customer ties, increase retention rates, and ultimately drive sustainable growth.</p>
+    </div></div>
 
     <script>
+        
+        // Update slider values dynamically
+        const sliders = ['clarity', 'completeness', 'purpose', 'feasibility', 'consistency'];
+        
+        sliders.forEach(slider => {
+            const input = document.getElementById(slider);
+            const span = document.getElementById(`${slider}Value`);
+            input.addEventListener('input', () => {
+                span.textContent = input.value;
+            });
+        });
+
+        // form submission
         document.getElementById('convoForm').addEventListener('submit', function (event) {
             event.preventDefault();
             const userInput = document.getElementById('message').value;
+            const graded_rubric = {};
+            sliders.forEach(slider => {
+                graded_rubric[slider] = document.getElementById(`${slider}Value`).value;
+            });
 
-            fetch('/reply', {
+            const test_case = document.getElementById('test_case').value;
+
+            fetch('http://127.0.0.1:5000/reply', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ input: userInput })
+                body: JSON.stringify({
+                    input: userInput,
+                    score: graded_rubric,
+                    case: test_case
+                })
             })
             .then(response => response.json())
             .then(data => {

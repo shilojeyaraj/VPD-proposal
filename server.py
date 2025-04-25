@@ -1,5 +1,7 @@
 from flask import Flask, request, render_template, jsonify
 
+from flask_cors import CORS
+
 import difflib
 import sys
 from html import escape
@@ -7,7 +9,6 @@ from html import escape
 import openai
 import os
 from dotenv import load_dotenv
-
 
 
 # Load environment variables from a .env file
@@ -19,6 +20,7 @@ openai.api_key = KEY
 #initialize client
 client = openai.OpenAI(api_key=KEY)
 app = Flask(__name__)
+CORS(app)
 
 # Initialize conversation history
 conversation = [
@@ -63,10 +65,18 @@ def index():
 @app.route('/reply', methods=['POST'])
 def reply():
     user_input = request.json.get('input')
-    add_message("user", user_input)  # Specify the role as "user"
+    graded_rubric = request.json.get('score')
+    
 
-    response = "nothing"
-    generate_html_diff("proposal_one.txt", "proposal_two.txt", "proposal_viewer.html")
+    message = f"{user_input}. Here are the grades, can you try to improve it using this: {graded_rubric}" + "Also, please correctly format new lines so they can be easily read."
+
+    # add the initial proposal's user message if it is not already there 
+    if not any(item['role'] == 'user' for item in conversation):
+        add_message("user", request.json.get('case'))
+
+    add_message("assistant", message)  # Specify the role as "user"
+
+    response = generate_response() # doesn't need an argument, everything in stored in the conversation
 
     return jsonify({'response': response})
 if __name__ == '__main__':
